@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LDOS — Control Pad</title>
+    {% load static %}
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root{--bg:#071026;--panel:#0f2130;--muted:#9fb0c6;--accent:#13b0a6;--danger:#ff3b30;--card:#0b1a24}
+        *{box-sizing:border-box;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
+        body{margin:0;background:linear-gradient(180deg,#031021 0%, #071426 100%);color:#d6eef4}
+        .app{display:flex;gap:20px;padding:24px}
+        .sidebar{width:220px;background:transparent;border-right:1px solid rgba(255,255,255,0.03);padding:20px}
+        .logo{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+        .logo img{width:36px;height:36px}
+        .nav{display:flex;flex-direction:column;gap:8px}
+        .nav a{color:var(--muted);padding:10px;border-radius:8px;text-decoration:none}
+        .nav a.active{background:rgba(255,255,255,0.03);color:white}
+        .main{flex:1;display:flex;flex-direction:column;gap:18px}
+        .topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 12px}
+        .metrics{display:flex;gap:12px}
+        .metric{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:12px;border-radius:8px;min-width:120px}
+        .layout{display:grid;grid-template-columns:1fr 420px;gap:12px}
+        .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .card{background:var(--card);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
+        .live{height:420px;display:flex;flex-direction:column}
+        .live .feed{flex:1;border-radius:8px;background:#0a1b22;overflow:hidden;position:relative}
+        .feed img{width:100%;height:100%;object-fit:cover;display:block}
+        .map{height:420px;border-radius:8px;overflow:hidden;background:#071924}
+        .panel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+        .controls{display:flex;gap:12px;align-items:center}
+        .btn{padding:12px 18px;border-radius:8px;background:var(--accent);color:#042227;border:none;cursor:pointer}
+        .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.03);color:var(--muted)}
+        .danger{background:var(--danger);color:white}
+        .small{font-size:12px;color:var(--muted)}
+        .title{font-weight:600}
+        .telemetry-list{display:flex;flex-direction:column;gap:8px}
+        .telemetry-item{display:flex;justify-content:space-between;padding:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));border-radius:6px}
+        .footer-controls{display:flex;justify-content:space-between;padding:12px;margin-top:10px}
+        @media(max-width:1100px){.app{flex-direction:column}.sidebar{width:100%;display:flex;flex-direction:row;overflow:auto}}
+    </style>
+    <script>window.LDOS_CONFIG = { device: '{{ device_id|default:"LDOS-001" }}' };</script>
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="logo"><img src="{% static 'telemetry/img/logo.svg' %}" alt="LDOS"><div><div style="font-weight:800">LDOS</div><div class="small">Lomunyak Drone OS</div></div></div>
+            <nav class="nav">
+                <a class="active">DASHBOARD</a>
+                <a>LIVE VIEW</a>
+                <a>MISSION</a>
+                <a>TELEMETRY</a>
+                <a>WAYPOINTS</a>
+                <a>PAYLOAD</a>
+                <a>SYSTEM</a>
+                <a>LOGS</a>
+                <a>SETTINGS</a>
+            </nav>
+        </aside>
+
+        <main class="main">
+            <div class="topbar card">
+                <div class="metrics">
+                    <div class="metric">
+                        <div class="small">ALTITUDE</div>
+                        <div class="title" id="altitude">{{ telemetry.altitude}} m</div>
+                    </div>
+                    <div class="metric">
+                        <div class="small">SPEED</div>
+                        <div class="title" id="speed">{{ telemetry.speed}} m/s</div>
+                    </div>
+                    <div class="metric">
+                        <div class="small">DISTANCE</div>
+                        <div class="title" id="distance">{{ telemetry.distance}} km</div>
+                    </div>
+                    <div class="metric">
+                        <div class="small">RSSI</div>
+                        <div class="title" id="rssi">{{ telemetry.rssi|default:'--' }} dBm</div>
+                    </div>
+                    <div class="metric">
+                        <div class="small">BATTERY</div>
+                        <div class="title" id="battery">{{ telemetry.battery_percent|default:'--' }}%</div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <div class="small">{{ now|date:"H:i:s T" }}</div>
+                    <button class="btn ghost">RTL</button>
+                    <button class="btn danger">EMERGENCY STOP</button>
+                </div>
+            </div>
+
+            <div class="layout">
+                <section class="live card">
+                    <div style="display:flex;gap:12px;margin-bottom:10px;align-items:center;justify-content:space-between">
+                        <div class="title">LIVE FEED</div>
+                        <div class="small">1080p / 60fps</div>
+                    </div>
+                    <div class="feed">
+                        <img id="live-image" src="{% static 'telemetry/img/camera.svg' %}" alt="live feed">
+                        <div style="position:absolute;left:12px;bottom:12px;background:rgba(0,0,0,0.4);padding:6px 8px;border-radius:6px;font-size:12px">REC</div>
+                    </div>
+
+                    <div style="margin-top:12px;display:flex;gap:12px;align-items:center">
+                        <button class="btn" id="takeoff">TAKE OFF</button>
+                        <button class="btn ghost" id="auto-mode">AUTO MODE</button>
+                        <div style="flex:1"></div>
+                        <div class="small">Latitude: <span id="lat">{{ telemetry.latitude|default:'--' }}</span></div>
+                        <div class="small">Longitude: <span id="lon">{{ telemetry.longitude|default:'--' }}</span></div>
+                    </div>
+                </section>
+
+                <aside class="map card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                        <div class="title">MISSION MAP</div>
+                        <div class="small">500 m</div>
+                    </div>
+                    <img src="{% static 'telemetry/img/map.svg' %}" alt="map" style="width:100%;height:calc(100% - 26px);object-fit:cover">
+                </aside>
+            </div>
+
+            <div class="row">
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                        <div class="title">TELEMETRY</div>
+                        <div class="small">Live values</div>
+                    </div>
+                    <div class="telemetry-list">
+                        <div class="telemetry-item"><div>Voltage</div><div id="voltage">{{ telemetry.voltage|default:'--' }} V</div></div>
+                        <div class="telemetry-item"><div>Current</div><div id="current">{{ telemetry.current|default:'--' }} A</div></div>
+                        <div class="telemetry-item"><div>Temperature</div><div id="temperature">{{ telemetry.temperature|default:'--' }} °C</div></div>
+                        <div class="telemetry-item"><div>GPS Satellites</div><div id="sats">{{ telemetry.sats|default:'--' }}</div></div>
+                        <div class="telemetry-item"><div>3D Fix</div><div id="fix">{{ telemetry.fix3d|yesno:"YES,NO" }}</div></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                        <div class="title">SENSORS</div>
+                        <div class="small">Status</div>
+                    </div>
+                    <div class="telemetry-list">
+                        {% for name, status in sensors.items %}
+                        <div class="telemetry-item">
+                            <div>{{ name|upper }}</div>
+                            <div style="color:{% if status == 'NORMAL' %}lightgreen{% else %}#ffb86b{% endif %}">{{ status }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-grid">
+                <div class="card">
+                    <div class="title">MISSION INFO</div>
+                    <div style="margin-top:8px" class="small">
+                        <div>Mission Name: <strong>{{ mission.name|default:'Survey Mission' }}</strong></div>
+                        <div>Mission Time: <strong id="mission-time">{{ mission.time|default:'00:15:42' }}</strong></div>
+                        <div>Waypoints: <strong>{{ mission.waypoints_count|default:'5' }}</strong></div>
+                        <div>Current WP: <strong id="current-wp">{{ mission.current_wp|default:'4' }}</strong></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="title">PAYLOAD STATUS</div>
+                    <div style="margin-top:8px" class="small">
+                        {% for p, st in payload.items %}
+                        <div style="display:flex;justify-content:space-between;padding:6px 0">
+                            <div>{{ p }}</div>
+                            <div style="color:{% if st == 'ACTIVE' %}lightgreen{% else %}var(--muted){% endif %}">{{ st }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="title">WARNING ALERTS</div>
+                    <div style="margin-top:8px" class="small">
+                        {% if warnings %}
+                            {% for w in warnings %}
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;color:{% if w.level == 'high' %}orange{% else %}yellow{% endif %}">{{ w.message }}<span class="small">{{ w.time }}</span></div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="small">No alerts</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-controls card footer-controls">
+                <div class="small">Uptime: {{ telemetry.uptime|default:'00:00:00' }}</div>
+                <div>
+                    <button class="btn ghost">PAUSE MISSION</button>
+                    <button class="btn">RTL</button>
+                    <button class="btn danger">EMERGENCY STOP</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{% static 'telemetry/js/telemetry.js' %}"></script>
+</body>
+</html>

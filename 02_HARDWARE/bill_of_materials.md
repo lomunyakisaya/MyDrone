@@ -1,0 +1,16 @@
+ARDUINO MEGA 2560 KES 2500
+ESP8266           KES 1500
+OLED DISPLAY      KES 350
+JUMPER WIRES      KES 450
+JOY-STICK         KES 350
+RESISTOR          KES 150
+SERVO             KES 500
+
+**Total**        **5800**
+
+
+
+
+
+
+last updated 5th/08/2026
