@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>ESP8266 WebSocket</h2>
+
+<pre id="output"></pre>
+
+<script>
+const socket = new WebSocket("ws://192.168.0.101:81/");
+
+socket.onopen = () => {
+    alert("Connected");
+};
+
+socket.onmessage = (event) => {
+    console.log(event.data);
+
+    document.getElementById("output").textContent +=
+        event.data + "\n";
+};
+
+socket.onclose = () => {
+    alert("Disconnected");
+};
+</script>
+
+</body>
+</html>
