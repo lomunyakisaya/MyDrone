@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LDOS WebSocket Monitor</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#101820;
+    color:white;
+}
+
+.container{
+    width:90%;
+    max-width:900px;
+    margin:40px auto;
+}
+
+.card{
+    background:#1d2733;
+    border-radius:10px;
+    padding:20px;
+    box-shadow:0 0 10px rgba(0,0,0,.3);
+}
+
+h1{
+    margin-top:0;
+}
+
+#status{
+    display:inline-block;
+    padding:8px 16px;
+    border-radius:20px;
+    background:#c0392b;
+    margin-bottom:20px;
+    font-weight:bold;
+}
+
+#output{
+    background:#0b1117;
+    border-radius:8px;
+    padding:15px;
+    height:400px;
+    overflow-y:auto;
+    white-space:pre-wrap;
+    font-family:monospace;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>🚁 LDOS Telemetry</h1>
+
+        <div id="status">
+            Connecting...
+        </div>
+
+        <h3>Incoming Messages</h3>
+
+        <div id="output"></div>
+
+    </div>
+
+</div>
+
+<script>
+
+const statusBox = document.getElementById("status");
+const output = document.getElementById("output");
+
+// Change this to your ESP8266 IP
+const socket = new WebSocket("ws://192.168.0.106:81/");
+
+socket.onopen = () => {
+
+    statusBox.innerHTML = "🟢 Connected";
+    statusBox.style.background = "#27ae60";
+
+};
+
+socket.onclose = () => {
+
+    statusBox.innerHTML = "🔴 Disconnected";
+    statusBox.style.background = "#c0392b";
+
+};
+
+socket.onerror = () => {
+
+    statusBox.innerHTML = "⚠ Connection Error";
+    statusBox.style.background = "#f39c12";
+
+};
+
+socket.onmessage = (event) => {
+
+    console.log(event.data);
+
+    // Add timestamp
+    const time = new Date().toLocaleTimeString();
+
+    output.innerHTML +=
+        `[${time}] ${event.data}<br>`;
+
+    // Keep the newest message visible
+    output.scrollTop = output.scrollHeight;
+
+};
+
+</script>
+
+</body>
+</html>
