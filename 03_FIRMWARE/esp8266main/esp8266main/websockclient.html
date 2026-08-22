@@ -76,7 +76,7 @@ h1{
 const statusBox = document.getElementById("status");
 const output = document.getElementById("output");
 
-// Change this to your ESP8266 IP
+// Your ESP8266 IP
 const socket = new WebSocket("ws://192.168.0.106:81/");
 
 socket.onopen = () => {
