@@ -4,9 +4,7 @@
 #include <ArduinoJson.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
-#include "websocket.h"
 
-WebSocket webSock;
 
 SoftwareSerial megaSerial(5, 4);
 ESP8266WebServer server(80);
@@ -24,33 +22,29 @@ void setup(){
   Serial.begin(9600);
   megaSerial.begin(9600);
 
-  //Web Server
-  server.begin(); 
-  Serial.println("Server Started");
-
 //WIFI configs
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED){
     delay(200);
     Serial.print(".");
   }
-  Serial.println("Connected");
   Serial.print("Esp8266 ip: ");
   Serial.println(WiFi.localIP());
 
+   //Web Server
+  server.begin(); 
+  Serial.println("Server Started");
+  Serial.println("Connected");
+
   //Server endpoints configs
-  server.on("/", [](){
-  server.send(200, "text/plain", "Hello World");
+  server.on("/", [](){server.send(200, "text/plain", "Hello World");
   });
-
-  //Websocket
-  webSock.begin();
-
-  }
+  server.onNotFound([]() {
+  server.send(404, "text/plain", "The page you requested was not found!");
+});
+}
 void loop() {
-  server.handleClient();
-  webSock.loop();
-  
+  server.handleClient();  
     if (megaSerial.available()) {
 
         String json = megaSerial.readStringUntil('\n');
@@ -59,17 +53,9 @@ void loop() {
         //JSON TO ESP8266 SERIAL MONITOR
         Serial.println(json);
         
-
-        //JSON TO WEBSOCKET
-        webSock.sendData(json);
-        Serial.print("Length: ");
-        Serial.println(json.length());
-        Serial.println(json);
-
-
         //JSON TO HTTP
         HTTPClient http;
-        http.begin(client, "http://192.168.0.106:8000/esp8266");
+        http.begin(client, "http://192.168.0.103:8000/esp8266");
         http.addHeader("Content-Type", "application/json");
         int httpCode = http.POST(json);
         if (httpCode > 0) {
