@@ -144,8 +144,8 @@ This project is released under the MIT License.
 
 Author
 
-Engineer Lomunyak
+Lomunyak Isaya
 Telecommunication and Information Engineering
 Embedded Systems and Autonomous Systems Developer
 
-"Building systems that think before gravity gets involved."
+"Building intelligent systems"
